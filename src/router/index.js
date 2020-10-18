@@ -6,6 +6,7 @@ Vue.use(Router)
 
 function checkedEnter(path,next){
     let menus_url=store.state.userInfo.menus_url;
+    console.log(store.state.userInfo.menus_url);
     if(menus_url.includes(path)){
         next()
     }else{

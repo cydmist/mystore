@@ -19,7 +19,7 @@
           </el-select>
         </el-form-item>
 
-         <el-form-item label="二级分类">
+        <el-form-item label="二级分类">
           <el-select v-model="form.second_cateid">
             <el-option label="请选择" value="" disabled></el-option>
             <el-option
@@ -31,20 +31,44 @@
           </el-select>
         </el-form-item>
 
-        <el-form-item label="商品名称">
+        <el-form-item
+          label="商品名称"
+          prop="goodsname"
+          :rules="[
+            { required: true, message: '请输入商品名称', trigger: 'blur' },
+          ]"
+        >
           <el-input v-model="form.goodsname"></el-input>
         </el-form-item>
 
-        <el-form-item label="价格">
+        <el-form-item
+          label="价格"
+          prop="price"
+          :rules="[
+            { required: true, message: '请输入价格', trigger: 'blur' },
+          ]"
+        >
           <el-input v-model="form.price"></el-input>
         </el-form-item>
 
-        <el-form-item label="市场价格">
+        <el-form-item
+          label="市场价格"
+          prop="market_price"
+          :rules="[
+            { required: true, message: '请输入市场价格', trigger: 'blur' },
+          ]"
+        >
           <el-input v-model="form.market_price"></el-input>
         </el-form-item>
 
         <!-- 原生 -->
-        <el-form-item label="图片">
+        <el-form-item
+          label="图片"
+          prop="img"
+          :rules="[
+            { required: true, message: '请输入图片', trigger: 'blur' },
+          ]"
+        >
           <div class="my-upload">
             <h3>+</h3>
             <img class="img" v-if="imgUrl" :src="imgUrl" alt="" />
@@ -60,11 +84,11 @@
         <el-form-item label="商品规格">
           <el-select v-model="form.specsid" @change="changeSpecs">
             <el-option lable="请选择" value=""></el-option>
-            <el-option 
-            v-for="item in specsList"
-            :key="item.id"
-            :label="item.specsname"
-            :value="item.id"
+            <el-option
+              v-for="item in specsList"
+              :key="item.id"
+              :label="item.specsname"
+              :value="item.id"
             ></el-option>
           </el-select>
         </el-form-item>
@@ -72,13 +96,12 @@
         <el-form-item label="商品属性">
           <el-select v-model="form.specsattr" placeholder="请选择" multiple>
             <el-option label="请选择" value=""></el-option>
-            <el-option 
-            v-for="item in goodsAttrList"
-            :key="item"
-            :label="item"
-            :value="item"
+            <el-option
+              v-for="item in goodsAttrList"
+              :key="item"
+              :label="item"
+              :value="item"
             ></el-option>
-          
           </el-select>
         </el-form-item>
 
@@ -93,7 +116,7 @@
         </el-form-item>
 
         <el-form-item label="商品描述">
-            <div v-if="info.isshow" id="editor"></div>
+          <div v-if="info.isshow" id="editor"></div>
         </el-form-item>
 
         <el-form-item label="状态">
@@ -106,17 +129,17 @@
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button @click="cancel">取 消</el-button>
-        <el-button type="primary" @click="add" v-if="info.isAdd"
+        <el-button type="primary" @click="add('form')" v-if="info.isAdd"
           >添 加</el-button
         >
-        <el-button type="primary" @click="update" v-else>修 改</el-button>
+        <el-button type="primary" @click="update('form')" v-else>修 改</el-button>
       </div>
     </el-dialog>
   </div>
 </template>
 <script>
 //富文本编辑器
-import E from "wangeditor"
+import E from "wangeditor";
 import { mapGetters, mapActions } from "vuex";
 import {
   reqCateList,
@@ -133,8 +156,8 @@ export default {
       //图片地址
       imgUrl: "",
       //商品属性list
-      goodsAttrList:[],
-      secondCateList:[],
+      goodsAttrList: [],
+      secondCateList: [],
       imgUrl: null,
       form: {
         first_cateid: "",
@@ -156,49 +179,49 @@ export default {
     ...mapGetters({
       cateList: "cate/list",
       //商品规格
-      specsList:"specs/list"
+      specsList: "specs/list",
     }),
   },
   methods: {
     ...mapActions({
       //请求商品分类list
-      reqCateList:"cate/reqListAction",
+      reqCateList: "cate/reqListAction",
       //请求goods lits
       reqListAction: "goods/reqListAction",
       //请求商品规格list
-      reqSpecsList:"specs/reqListAction",
-      reqTotalAction:"goods/reqTotalAction"
+      reqSpecsList: "specs/reqListAction",
+      reqTotalAction: "goods/reqTotalAction",
     }),
     //富文本
-    opened(){
-      this.editor=new E('#editor');
+    opened() {
+      this.editor = new E("#editor");
       this.editor.create();
       //编辑器创建完成之后
-      this.editor.txt.html(this.form.description)
+      this.editor.txt.html(this.form.description);
     },
     //商品规格发生了改变，计算属性的数组
-    changeSpecs(){
-      this.form.specsattr=[];
+    changeSpecs() {
+      this.form.specsattr = [];
       this.getAttrsArr();
     },
     //获取商品属性数组
-    getAttrsArr(){
-      let obj=this.specsList.find(item=>{
-      return  item.id==this.form.specsid
+    getAttrsArr() {
+      let obj = this.specsList.find((item) => {
+        return item.id == this.form.specsid;
       });
       console.log(obj);
-      this.goodsAttrList=obj.attrs
+      this.goodsAttrList = obj.attrs;
     },
     //一级分类变了，获取二级分类的list
-    changeFirst(){
-      this.form.second_cateid="";
+    changeFirst() {
+      this.form.second_cateid = "";
       this.getSecondList();
     },
     //获取二级分类list
-    getSecondList(){
-      reqCateList({pid:this.form.first_cateid}).then(res=>{
-        this.secondCateList=res.data.list
-      })
+    getSecondList() {
+      reqCateList({ pid: this.form.first_cateid }).then((res) => {
+        this.secondCateList = res.data.list;
+      });
     },
     //获取文件
     getFile(e) {
@@ -251,50 +274,54 @@ export default {
       //商品属性list
       this.goodsAttrList = [];
     },
-      
 
     //点击了添加按钮
-    add() {
-      //添加之前获取到富文本编辑器里面的内容
-      this.form.description=this.editor.txt.html();
-      let data={
-        ...this.form,
-        specsattr:JSON.stringify(this.form.specsattr)
-      }
+    add(form) {
+      this.$refs[form].validate((valid) => {
+        if (valid) {
+          //添加之前获取到富文本编辑器里面的内容
+          this.form.description = this.editor.txt.html();
+          let data = {
+            ...this.form,
+            specsattr: JSON.stringify(this.form.specsattr),
+          };
 
-      reqGoodsAdd(data).then((res) => {
-        
-        if (res.data.code == 200) {
-          //成功
-          successAlert(res.data.msg);
+          reqGoodsAdd(data).then((res) => {
+            if (res.data.code == 200) {
+              //成功
+              successAlert(res.data.msg);
 
-          //数据重置
-          this.empty();
+              //数据重置
+              this.empty();
 
-          //弹框消失
-          this.cancel();
+              //弹框消失
+              this.cancel();
 
-          //list数据要刷新
-          this.reqListAction();
-          this.reqTotalAction();
+              //list数据要刷新
+              this.reqListAction();
+              this.reqTotalAction();
+            } else {
+              warningAlert(res.data.msg);
+            }
+          });
         } else {
-          warningAlert(res.data.msg);
+          console.log("error submit!!");
+          return false;
         }
       });
     },
     //获取菜单详情 （1条）
     look(id) {
       //发请求
-      reqGoodsDetail({id:id}).then((res) => {
-        
+      reqGoodsDetail({ id: id }).then((res) => {
         if (res.data.code == 200) {
           //这个时候form是没有id的
           this.form = res.data.list;
           //补id
-          this.form.id = id;  
+          this.form.id = id;
           //请求二级分类的list
           this.getSecondList();
-          
+
           this.imgUrl = this.$imgPre + this.form.img;
 
           //商品属性从字符串转为 []
@@ -308,29 +335,36 @@ export default {
       });
     },
     //修改
-    update() {
-      this.form.description=this.editor.txt.html();
-      
-      let data={
-        ...this.form,
-        specsattr:JSON.stringify(this.form.specsattr)
-      }
-      
-      reqGoodsUpdate(data).then((res) => {
-        console.log(res);
-        if (res.data.code == 200) {
-          successAlert(res.data.msg);
-          this.empty();
-          this.cancel();
-          this.reqListAction();
+    update(form) {
+      this.$refs[form].validate((valid) => {
+        if (valid) {
+          this.form.description = this.editor.txt.html();
+
+          let data = {
+            ...this.form,
+            specsattr: JSON.stringify(this.form.specsattr),
+          };
+
+          reqGoodsUpdate(data).then((res) => {
+            console.log(res);
+            if (res.data.code == 200) {
+              successAlert(res.data.msg);
+              this.empty();
+              this.cancel();
+              this.reqListAction();
+            } else {
+              warningAlert(res.data.msg);
+            }
+          });
         } else {
-          warningAlert(res.data.msg);
+          console.log("error submit!!");
+          return false;
         }
       });
     },
   },
   mounted() {
-    this.reqSpecsList(true)
+    this.reqSpecsList(true);
     //如果菜单list没有请求过，就请求一下，如果请求过了，就不用请求了
     if (this.cateList.length == 0) {
       this.reqCateList();

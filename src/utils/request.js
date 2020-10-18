@@ -3,9 +3,19 @@ import qs from "qs"
 import Vue from "vue"
 
 
+import store from "../store"
+import router from "../router"
 Vue.prototype.$imgPre = "http://localhost:3000"
 let baseUrl = "/api";
 
+//请求拦截
+axios.interceptors.request.use(req=>{
+    if(req.url!=baseUrl+"/api/userlogin"){
+        req.headers.authorization=store.state.userInfo.token
+    }
+    console.log(req);
+    return req;
+})
 //响应拦截
 axios.interceptors.response.use(res => {
     console.group("=====本次请求路径是:" + res.config.url)
@@ -459,7 +469,7 @@ export const reqSeckillDetail = (id) => {
         }
     })
 }
-//轮播图修改
+//秒杀修改
 export const reqSeckillUpdate = (params) => {
     return axios({
         url: baseUrl + "/api/seckedit",
@@ -467,7 +477,7 @@ export const reqSeckillUpdate = (params) => {
         data: qs.stringify(params)
     })
 }
-//轮播图删除
+//秒杀图删除
 export const reqSeckillDel = (id) => {
     return axios({
         url: baseUrl + "/api/seckdelete",

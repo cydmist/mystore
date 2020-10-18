@@ -8,7 +8,7 @@
       <el-form ref="form" :model="form" label-width="80px">
         <el-form-item label="上级分类">
           <el-select v-model="form.pid" placeholder="请选择上级分类">
-            <el-option label="顶级分类"  :value="0"></el-option>
+            <el-option label="顶级分类" :value="0"></el-option>
             <el-option
               v-for="item in list"
               :key="item.id"
@@ -20,19 +20,27 @@
         <!-- 树形控件 -->
         <!-- data要展示的数组 -->
         <!-- props 配置 ：children 用来判断是否有下一层的字段；label用来展示在页面中的字段 -->
-        <el-form-item label="分类名称">
+        <el-form-item label="分类名称"
+          prop="catename"
+          :rules="[
+            { required: true, message: '请输入规格属性', trigger: 'blur' },
+          ]">
           <el-input v-model="form.catename"></el-input>
         </el-form-item>
-        
+
         <!-- 原生 -->
-         <el-form-item label="图片" v-if="form.pid!=0">
-          <div class="my-upload" >
+        <el-form-item label="图片" v-if="form.pid != 0">
+          <div class="my-upload">
             <h3>+</h3>
-            <img class="img" v-if="imgUrl" :src="imgUrl" alt="">
-            <input v-if="info.isshow" class="my-input" type="file" @change="getFile" />
+            <img class="img" v-if="imgUrl" :src="imgUrl" alt="" />
+            <input
+              v-if="info.isshow"
+              class="my-input"
+              type="file"
+              @change="getFile"
+            />
           </div>
         </el-form-item>
-
 
         <el-form-item label="状态">
           <el-switch
@@ -44,10 +52,10 @@
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button @click="cancel">取 消</el-button>
-        <el-button type="primary" @click="add" v-if="info.isAdd"
+        <el-button type="primary" @click="add('form')" v-if="info.isAdd"
           >添 加</el-button
         >
-        <el-button type="primary" @click="update" v-else>修 改</el-button>
+        <el-button type="primary" @click="update('form')" v-else>修 改</el-button>
       </div>
     </el-dialog>
   </div>
@@ -65,18 +73,17 @@ export default {
   components: {},
   data() {
     return {
-      imgUrl:null,
+      imgUrl: null,
       form: {
         pid: "",
         catename: "",
-        img:null,
+        img: null,
         status: 1,
       },
     };
   },
   computed: {
     ...mapGetters({
-      
       list: "cate/list",
     }),
   },
@@ -85,21 +92,20 @@ export default {
       reqListAction: "cate/reqListAction",
     }),
     //获取文件
-    getFile(e){
-      let file =e.target.files[0];
-      
+    getFile(e) {
+      let file = e.target.files[0];
+
       // 是图片
-      let imgExtArr=['.jpg','.png','jpeg','.gif']
-      let extname=file.name.slice(file.name.lastIndexOf('.'))
-      if(!imgExtArr.some(item=>item==extname)){
-        warningAlert("文件格式不正确")
+      let imgExtArr = [".jpg", ".png", "jpeg", ".gif"];
+      let extname = file.name.slice(file.name.lastIndexOf("."));
+      if (!imgExtArr.some((item) => item == extname)) {
+        warningAlert("文件格式不正确");
       }
-      
-      
+
       //生成一个地址
-      this.imgUrl=URL.createObjectURL(file);
+      this.imgUrl = URL.createObjectURL(file);
       //将文件保存在form.img
-      this.form.img=file;
+      this.form.img = file;
     },
 
     //取消
@@ -118,31 +124,36 @@ export default {
       this.form = {
         pid: "",
         catename: "",
-        img:null,
+        img: null,
         status: 1,
       };
-      this.imgUrl="";
+      this.imgUrl = "";
     },
 
     //点击了添加按钮
-    add() {
-      console.log(this.form);
-      reqCateAdd(this.form).then((res) => {
+    add(form) {
+      this.$refs[form].validate((valid) => {
+        if (valid) {
+          reqCateAdd(this.form).then((res) => {
+            if (res.data.code == 200) {
+              //成功
+              successAlert(res.data.msg);
 
-        if (res.data.code == 200) {
-          //成功
-          successAlert(res.data.msg);
+              //数据重置
+              this.empty();
 
-          //数据重置
-          this.empty();
+              //弹框消失
+              this.cancel();
 
-          //弹框消失
-          this.cancel();
-
-          //list数据要刷新
-          this.reqListAction();
+              //list数据要刷新
+              this.reqListAction();
+            } else {
+              warningAlert(res.data.msg);
+            }
+          });
         } else {
-          warningAlert(res.data.msg);
+          console.log("error submit!!");
+          return false;
         }
       });
     },
@@ -154,23 +165,30 @@ export default {
         if (res.data.code == 200) {
           //这个时候form是没有id的
           this.form = res.data.list;
-          this.form.id=id;
-          this.imgUrl=this.$imgPre+this.form.img
+          this.form.id = id;
+          this.imgUrl = this.$imgPre + this.form.img;
         } else {
           warningAlert(res.data.msg);
         }
       });
     },
     //修改
-    update() {
-      reqCateUpdate(this.form).then((res) => {
-        if (res.data.code == 200) {
-          successAlert(res.data.msg);
-          this.empty();
-          this.cancel();
-          this.reqListAction();
+    update(form) {
+      this.$refs[form].validate((valid) => {
+        if (valid) {
+          reqCateUpdate(this.form).then((res) => {
+            if (res.data.code == 200) {
+              successAlert(res.data.msg);
+              this.empty();
+              this.cancel();
+              this.reqListAction();
+            } else {
+              warningAlert(res.data.msg);
+            }
+          });
         } else {
-          warningAlert(res.data.msg);
+          console.log("error submit!!");
+          return false;
         }
       });
     },

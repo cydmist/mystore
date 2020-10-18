@@ -20,10 +20,20 @@
         <!-- 树形控件 -->
         <!-- data要展示的数组 -->
         <!-- props 配置 ：children 用来判断是否有下一层的字段；label用来展示在页面中的字段 -->
-        <el-form-item label="用户名">
+        <el-form-item
+          label="用户名"
+          prop="username"
+          :rules="[
+            { required: true, message: '请输入用户名', trigger: 'blur' },
+          ]"
+        >
           <el-input v-model="form.username"></el-input>
         </el-form-item>
-        <el-form-item label="密码">
+        <el-form-item
+          label="密码"
+          prop="password"
+          :rules="[{ required: true, message: '请输入密码', trigger: 'blur' }]"
+        >
           <el-input v-model="form.password"></el-input>
         </el-form-item>
 
@@ -37,10 +47,12 @@
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button @click="cancel">取 消</el-button>
-        <el-button type="primary" @click="add" v-if="info.isAdd"
+        <el-button type="primary" @click="add('form')" v-if="info.isAdd"
           >添 加</el-button
         >
-        <el-button type="primary" @click="update" v-else>修 改</el-button>
+        <el-button type="primary" @click="update('form')" v-else
+          >修 改</el-button
+        >
       </div>
     </el-dialog>
   </div>
@@ -102,24 +114,31 @@ export default {
     },
 
     //点击了添加按钮
-    add() {
-      reqMangerAdd(this.form).then((res) => {
-        if (res.data.code == 200) {
-          //成功
-          successAlert(res.data.msg);
+    add(form) {
+      this.$refs[form].validate((valid) => {
+        if (valid) {
+          reqMangerAdd(this.form).then((res) => {
+            if (res.data.code == 200) {
+              //成功
+              successAlert(res.data.msg);
 
-          //数据重置
-          this.empty();
+              //数据重置
+              this.empty();
 
-          //弹框消失
-          this.cancel();
+              //弹框消失
+              this.cancel();
 
-          //list数据要刷新
-          this.reqMangerList();
-          //总数刷新
-          this.reqTotalAction();
+              //list数据要刷新
+              this.reqMangerList();
+              //总数刷新
+              this.reqTotalAction();
+            } else {
+              warningAlert(res.data.msg);
+            }
+          });
         } else {
-          warningAlert(res.data.msg);
+          console.log("error submit!!");
+          return false;
         }
       });
     },
@@ -137,15 +156,22 @@ export default {
       });
     },
     //修改
-    update() {
-      reqMangerUpdate(this.form).then((res) => {
-        if (res.data.code == 200) {
-          successAlert(res.data.msg);
-          this.empty();
-          this.cancel();
-          this.reqMangerList();
+    update(form) {
+      this.$refs[form].validate((valid) => {
+        if (valid) {
+          reqMangerUpdate(this.form).then((res) => {
+            if (res.data.code == 200) {
+              successAlert(res.data.msg);
+              this.empty();
+              this.cancel();
+              this.reqMangerList();
+            } else {
+              warningAlert(res.data.msg);
+            }
+          });
         } else {
-          warningAlert(res.data.msg);
+          console.log("error submit!!");
+          return false;
         }
       });
     },

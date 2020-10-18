@@ -6,7 +6,13 @@
       @closed="close"
     >
       <el-form ref="form" :model="form" label-width="80px">
-        <el-form-item label="菜单名称">
+        <el-form-item
+          label="菜单名称"
+          prop="title"
+          :rules="[
+            { required: true, message: '请输入菜单名称', trigger: 'blur' },
+          ]"
+        >
           <el-input v-model="form.title"></el-input>
         </el-form-item>
         <el-form-item label="上级菜单">
@@ -57,10 +63,12 @@
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button @click="cancel">取 消</el-button>
-        <el-button type="primary" @click="add" v-if="info.isAdd"
+        <el-button type="primary" @click="add('form')" v-if="info.isAdd"
           >添 加</el-button
         >
-        <el-button type="primary" @click="update" v-else>修 改</el-button>
+        <el-button type="primary" @click="update('form')" v-else
+          >修 改</el-button
+        >
       </div>
     </el-dialog>
   </div>
@@ -112,10 +120,10 @@ export default {
       this.info.isshow = false;
     },
     //弹框消失完成
-    close(){
+    close() {
       //如果是添加开的弹框，就什么都不做；如果是编辑开的弹框，就清除form
-      if(!this.info.isAdd){
-        this.empty()
+      if (!this.info.isAdd) {
+        this.empty();
       }
     },
     //数据重置
@@ -138,22 +146,29 @@ export default {
       }
     },
     //点击了添加按钮
-    add() {
-      reqMenuAdd(this.form).then((res) => {
-        if (res.data.code == 200) {
-          //成功
-          successAlert(res.data.msg);
+    add(form) {
+      this.$refs[form].validate((valid) => {
+        if (valid) {
+          reqMenuAdd(this.form).then((res) => {
+            if (res.data.code == 200) {
+              //成功
+              successAlert(res.data.msg);
 
-          //数据重置
-          this.empty();
+              //数据重置
+              this.empty();
 
-          //弹框消失
-          this.cancel();
+              //弹框消失
+              this.cancel();
 
-          //list数据要刷新
-          this.reqListAction();
+              //list数据要刷新
+              this.reqListAction();
+            } else {
+              warningAlert(res.data.msg);
+            }
+          });
         } else {
-          warningAlert(res.data.msg);
+          console.log("error submit!!");
+          return false;
         }
       });
     },
@@ -171,15 +186,22 @@ export default {
       });
     },
     //修改
-    update() {
-      reqMenuUpdate(this.form).then((res) => {
-        if (res.data.code == 200) {
-          successAlert(res.data.msg);
-          this.empty();
-          this.cancel();
-          this.reqListAction();
+    update(form) {
+      this.$refs[form].validate((valid) => {
+        if (valid) {
+          reqMenuUpdate(this.form).then((res) => {
+            if (res.data.code == 200) {
+              successAlert(res.data.msg);
+              this.empty();
+              this.cancel();
+              this.reqListAction();
+            } else {
+              warningAlert(res.data.msg);
+            }
+          });
         } else {
-          warningAlert(res.data.msg);
+          console.log("error submit!!");
+          return false;
         }
       });
     },

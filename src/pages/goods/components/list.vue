@@ -42,6 +42,15 @@
       </el-table-column>
     </el-table>
 
+
+    <el-pagination
+      background
+      layout="prev, pager, next"
+      :total="total"
+      :page-size="size"
+      @current-change="changePage"
+    >
+    </el-pagination>
     
   </div>
 </template>
@@ -87,11 +96,14 @@ export default {
         }
       });
     },
+    //修改当前页码
+    changePage(e){
+      this.changePageAction(e)
+    }
   },
-  mounted() {
-    
+  mounted() {  
     this.reqListAction();
-
+    this.reqTotalAction();
   },
 };
 </script>

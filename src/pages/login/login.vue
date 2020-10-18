@@ -32,6 +32,9 @@ export default {
         username: "",
         password: "",
       },
+      rules:{
+
+      }
     };
   },
    computed: {

@@ -6,7 +6,7 @@
     border
     :tree-props="{ children: 'children' }"
   >
-    <el-table-column prop="rolename" label="活动名称" sortable width="180">
+    <el-table-column prop="title" label="活动名称" sortable width="180">
     </el-table-column>
   
    
@@ -36,12 +36,12 @@ export default {
   },
   computed: {
     ...mapGetters({
-      list: "role/list",
+      list: "seckill/list",
     }),
   },
   methods: {
     ...mapActions({
-      reqListAction: "role/reqListAction",
+      reqListAction: "seckill/reqListAction",
     }),
     //编辑
     edit(id) {
@@ -50,7 +50,7 @@ export default {
     //删除2
     dele(id) {
       //点了确定按钮
-      reqRoleDel(id).then((res) => {
+      reqSeckillDel(id).then((res) => {
         if (res.data.code == 200) {
           successAlert(res.data.msg);
           this.reqListAction();

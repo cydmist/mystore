@@ -6,19 +6,32 @@
       @closed="close"
     >
       <el-form ref="form" :model="form" label-width="80px">
-        <el-form-item label="手机号">
+        <el-form-item
+          label="手机号"
+          prop="phone"
+          :rules="[
+            { required: true, message: '请输入手机号', trigger: 'blur' },
+          ]"
+        >
           <el-input v-model="form.phone"></el-input>
         </el-form-item>
-       
-        <el-form-item label="昵称">
+
+        <el-form-item
+          label="昵称"
+          prop="nickname"
+          :rules="[{ required: true, message: '请输入昵称', trigger: 'blur' }]"
+        >
           <el-input v-model="form.nickname"></el-input>
         </el-form-item>
 
-        <el-form-item label="密码">
+        <el-form-item
+          label="密码"
+          prop="password"
+          :rules="[{ required: true, message: '请输入密码', trigger: 'blur' }]"
+        >
           <el-input v-model="form.password"></el-input>
         </el-form-item>
 
-        
         <el-form-item label="状态">
           <el-switch
             v-model="form.status"
@@ -29,35 +42,30 @@
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button @click="cancel">取 消</el-button>
-        <el-button type="primary" @click="update">修 改</el-button>
+        <el-button type="primary" @click="update('form')">修 改</el-button>
       </div>
     </el-dialog>
   </div>
 </template>
 <script>
 import { mapGetters, mapActions } from "vuex";
-import {
-  
-  reqVipDetail,
-  reqVipUpdate,
-} from "../../../utils/request";
+import { reqVipDetail, reqVipUpdate } from "../../../utils/request";
 import { warningAlert, successAlert } from "../../../utils/alert";
 export default {
   props: ["info"],
   components: {},
   data() {
     return {
-     form: {
-        nickname:"",
-        phone:"",
-        password:"",
+      form: {
+        nickname: "",
+        phone: "",
+        password: "",
         status: 1,
       },
     };
   },
   computed: {
     ...mapGetters({
-      
       vipList: "vip/list",
     }),
   },
@@ -66,7 +74,7 @@ export default {
       //请求菜单list
       reqMenuListAction: "menu/reqListAction",
       //角色的list
-      reqRoleList:"role/reqListAction"
+      reqRoleList: "role/reqListAction",
     }),
     //取消
     cancel() {
@@ -82,45 +90,44 @@ export default {
     //数据重置
     empty() {
       this.form = {
-         nickname:"",
-        phone:"",
-        password:"",
+        nickname: "",
+        phone: "",
+        password: "",
         status: 1,
       };
-      
     },
-   
-   
+
     //获取菜单详情 （1条）
     look(id) {
       //发请求
-      
+
       reqVipDetail(id).then((res) => {
-    
         if (res.data.code == 200) {
-         
           this.form = res.data.list;
-         
-          this.form.password="";
+
+          this.form.password = "";
         } else {
           warningAlert(res.data.msg);
         }
       });
     },
     //修改
-    update() {
-      
-      reqVipUpdate(this.form).then((res) => {
-      
-        
-        if (res.data.code == 200) {
-          
-          successAlert(res.data.msg);
-          this.empty();
-          this.cancel();
-          // this.reqVipList();
+    update(form) {
+      this.$refs[form].validate((valid) => {
+        if (valid) {
+          reqVipUpdate(this.form).then((res) => {
+            if (res.data.code == 200) {
+              successAlert(res.data.msg);
+              this.empty();
+              this.cancel();
+              // this.reqVipList();
+            } else {
+              warningAlert(res.data.msg);
+            }
+          });
         } else {
-          warningAlert(res.data.msg);
+          console.log("error submit!!");
+          return false;
         }
       });
     },

@@ -6,8 +6,14 @@
       @closed="close"
     >
       <el-form ref="form" :model="form" label-width="80px">
-        <el-form-item label="活动名称">
-          <el-input v-model="form.rolename"></el-input>
+        <el-form-item
+          label="活动名称"
+          prop="title"
+          :rules="[
+            { required: true, message: '请输入活动名称', trigger: 'blur' },
+          ]"
+        >
+          <el-input v-model="form.title"></el-input>
         </el-form-item>
 
         <el-form-item label="活动期限">
@@ -24,7 +30,6 @@
             </el-date-picker>
           </div>
         </el-form-item>
-
 
         <el-form-item label="一级分类">
           <el-select v-model="form.first_cateid" @change="changeFirst">
@@ -61,8 +66,6 @@
           </el-select>
         </el-form-item>
 
-
-
         <el-form-item label="状态">
           <el-switch
             v-model="form.status"
@@ -73,10 +76,12 @@
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button @click="cancel">取 消</el-button>
-        <el-button type="primary" @click="add" v-if="info.isAdd"
+        <el-button type="primary" @click="add('form')" v-if="info.isAdd"
           >添 加</el-button
         >
-        <el-button type="primary" @click="update" v-else>修 改</el-button>
+        <el-button type="primary" @click="update('form')" v-else
+          >修 改</el-button
+        >
       </div>
     </el-dialog>
   </div>
@@ -99,86 +104,89 @@ export default {
   data() {
     return {
       //二级分类的list
-      secondCateList:[],
+      secondCateList: [],
       //goodslist
-      goodsList:[],
+      goodsList: [],
       form: {
-        
-        title:"",
-        begintime:"",
-        endtime:"",
-        first_cateid:"",
-        second_cateid:"",
-        goodsid:"",
+        title: "",
+        begintime: "",
+        endtime: "",
+        first_cateid: "",
+        second_cateid: "",
+        goodsid: "",
         status: 1,
       },
       pickerOptions: {
-          shortcuts: [{
-            text: '最近一周',
+        shortcuts: [
+          {
+            text: "最近一周",
             onClick(picker) {
               const end = new Date();
               const start = new Date();
               start.setTime(start.getTime() - 3600 * 1000 * 24 * 7);
-              picker.$emit('pick', [start, end]);
-            }
-          }, {
-            text: '最近一个月',
+              picker.$emit("pick", [start, end]);
+            },
+          },
+          {
+            text: "最近一个月",
             onClick(picker) {
               const end = new Date();
               const start = new Date();
               start.setTime(start.getTime() - 3600 * 1000 * 24 * 30);
-              picker.$emit('pick', [start, end]);
-            }
-          }, {
-            text: '最近三个月',
+              picker.$emit("pick", [start, end]);
+            },
+          },
+          {
+            text: "最近三个月",
             onClick(picker) {
               const end = new Date();
               const start = new Date();
               start.setTime(start.getTime() - 3600 * 1000 * 24 * 90);
-              picker.$emit('pick', [start, end]);
-            }
-          }]
-        },
-        value1: [new Date(2000, 10, 10, 10, 10), new Date(2000, 10, 11, 10, 10)],
-        value2: ''
+              picker.$emit("pick", [start, end]);
+            },
+          },
+        ],
+      },
+      value1: [new Date(2000, 10, 10, 10, 10), new Date(2000, 10, 11, 10, 10)],
+      value2: "",
     };
   },
   computed: {
     ...mapGetters({
       //商品list
       cateList: "cate/list",
-     
     }),
   },
   methods: {
     ...mapActions({
       //请求商品分类list
       reqCateList: "cate/reqListAction",
-      
+      //请求商品管理list
+      reqGoodsList: "goods/reqListAction",
+      reqSeckillList: "seckill/reqListAction",
     }),
     //一级分类变了，二级分类也会变
-    changeFirst(){
-        this.form.second_cateid="";
-        this.getSecondList();
+    changeFirst() {
+      this.form.second_cateid = "";
+      this.getSecondList();
     },
     //获得二级分类
-    getSecondList(){
-      reqCateList({pid:this.form.first_cateid}).then((res)=>{
-        this.secondCateList=res.data.list;
-      })
+    getSecondList() {
+      reqCateList({ pid: this.form.first_cateid }).then((res) => {
+        this.secondCateList = res.data.list;
+      });
     },
     //二级分类改变，三级分类也变
-    changeSecond(){
-        this.goodsid="",
-        this.getThreeList();
+    changeSecond() {
+      (this.goodsid = ""), this.getThreeList();
     },
     //获取三级分类
-    getThreeList(){
-      reqGoodsList().then((res)=>{
-        this.goodsList=res.data.list.filter(item=>{
-          return  this.form.second_cateid==item.second_cateid
-        })
-      })
+    getThreeList() {
+      reqGoodsList().then((res) => {
+        this.goodsList = res.data.list.filter((item) => {
+          return this.form.second_cateid == item.second_cateid;
+        });
+      });
     },
     //取消
     cancel() {
@@ -194,71 +202,107 @@ export default {
     //数据重置
     empty() {
       this.form = {
-       
-        title:"",
-        begintime:"",
-        endtime:"",
-        first_cateid:"",
-        second_cateid:"",
-        goodsid:"",
+        title: "",
+        begintime: "",
+        endtime: "",
+        first_cateid: "",
+        second_cateid: "",
+        goodsid: "",
         status: 1,
       };
-     
-      
     },
-
+    //得到时间
+    getTime() {
+      //得到时间
+    },
     //点击了添加按钮
-    add() {
-      
-      reqSeckillAdd(this.form).then((res) => {
-        if (res.data.code == 200) {
-          //成功
-          successAlert(res.data.msg);
+    add(form) {
+      this.$refs[form].validate((valid) => {
+        if (valid) {
+          //开始时间转时间戳
+          var t1 = new Date(this.value2[0]).getTime();
+          //结束时间转时间戳
+          var t2 = new Date(this.value2[1]).getTime();
+          this.form.begintime = t1;
+          this.form.endtime = t2;
+          reqSeckillAdd(this.form).then((res) => {
+            if (res.data.code == 200) {
+              //成功
+              successAlert(res.data.msg);
 
-          //数据重置
-          this.empty();
+              //数据重置
+              this.empty();
 
-          //弹框消失
-          this.cancel();
-
-          //list数据要刷新
-          this.reqRoleList();
+              //弹框消失
+              this.cancel();
+              this.value2 = "";
+              //list数据要刷新
+              this.reqSeckillList();
+            } else {
+              warningAlert(res.data.msg);
+            }
+          });
         } else {
-          warningAlert(res.data.msg);
+          console.log("error submit!!");
+          return false;
         }
       });
     },
+
     //获取菜单详情 （1条）
     look(id) {
       //发请求
       reqSeckillDetail(id).then((res) => {
         if (res.data.code == 200) {
+          //时间戳转为正常时间格式
+
           //这个时候form是没有id的
           this.form = res.data.list;
           this.form.id = id;
-          //给树形控件赋值
-          this.$refs.tree.setCheckedKeys(JSON.parse(this.form.menus));
+          this.value2 = [
+            new Date(parseInt(this.form.begintime)),
+            new Date(parseInt(this.form.endtime)),
+          ];
+          console.log(this.form.begintime);
+          // 得到二级list
+          this.getSecondList();
+          //得到三级list
+          this.getThreeList();
         } else {
           warningAlert(res.data.msg);
         }
       });
     },
     //修改
-    update() {
-      
-      reqSeckillUpdate(this.form).then((res) => {
-        if (res.data.code == 200) {
-          successAlert(res.data.msg);
-          this.empty();
-          this.cancel();
-          this.reqRoleList();
+    update(id,form) {
+      this.$refs[form].validate((valid) => {
+        if (valid) {
+          let data = {
+            ...this.form,
+            cateList: JSON.stringify(this.form.cateList),
+            goodsList: JSON.stringify(this.form.goodsList),
+          };
+
+          reqSeckillUpdate(data).then((res) => {
+            console.log(res);
+            if (res.data.code == 200) {
+              successAlert(res.data.msg);
+              this.empty();
+              this.cancel();
+              this.reqSeckillList();
+            } else {
+              warningAlert(res.data.msg);
+            }
+          });
         } else {
-          warningAlert(res.data.msg);
+          console.log("error submit!!");
+          return false;
         }
       });
     },
   },
   mounted() {
+    this.reqCateList();
     //如果菜单list没有请求过，就请求一下，如果请求过了，就不用请求了
     // if (this.menuList.length == 0) {
     //   this.reqMenuListAction();

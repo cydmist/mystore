@@ -6,7 +6,13 @@
       @closed="close"
     >
       <el-form ref="form" :model="form" label-width="80px">
-        <el-form-item label="角色名称">
+        <el-form-item
+          label="角色名称"
+          prop="rolename"
+          :rules="[
+            { required: true, message: '请输入角色名称', trigger: 'blur' },
+          ]"
+        >
           <el-input v-model="form.rolename"></el-input>
         </el-form-item>
         <!-- 树形控件 -->
@@ -18,7 +24,7 @@
             :data="menuList"
             show-checkbox
             node-key="id"
-            :props="{children: 'children',label: 'title',}"
+            :props="{ children: 'children', label: 'title' }"
           >
           </el-tree>
         </el-form-item>
@@ -33,10 +39,12 @@
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button @click="cancel">取 消</el-button>
-        <el-button type="primary" @click="add" v-if="info.isAdd"
+        <el-button type="primary" @click="add('form')" v-if="info.isAdd"
           >添 加</el-button
         >
-        <el-button type="primary" @click="update" v-else>修 改</el-button>
+        <el-button type="primary" @click="update('form')" v-else
+          >修 改</el-button
+        >
       </div>
     </el-dialog>
   </div>
@@ -54,9 +62,9 @@ export default {
   components: {},
   data() {
     return {
-     form: {
-        rolename:"",
-        menus:'[]',
+      form: {
+        rolename: "",
+        menus: "[]",
         status: 1,
       },
     };
@@ -72,7 +80,7 @@ export default {
       //请求菜单list
       reqMenuListAction: "menu/reqListAction",
       //角色的list
-      reqRoleList:"role/reqListAction"
+      reqRoleList: "role/reqListAction",
     }),
     //取消
     cancel() {
@@ -88,33 +96,40 @@ export default {
     //数据重置
     empty() {
       this.form = {
-        rolename:"",
-        menus:'[]',
+        rolename: "",
+        menus: "[]",
         status: 1,
       };
       //树形控件设置值
-      this.$refs.tree.setCheckedKeys([])
+      this.$refs.tree.setCheckedKeys([]);
     },
-   
+
     //点击了添加按钮
-    add() {
-      ////树形控件取值 this.$refs.tree.getCheckedKeys()
-      this.form.menus=JSON.stringify(this.$refs.tree.getCheckedKeys())
-      reqRoleAdd(this.form).then((res) => {
-        if (res.data.code == 200) {
-          //成功
-          successAlert(res.data.msg);
+    add(form) {
+      this.$refs[form].validate((valid) => {
+        if (valid) {
+          ////树形控件取值 this.$refs.tree.getCheckedKeys()
+          this.form.menus = JSON.stringify(this.$refs.tree.getCheckedKeys());
+          reqRoleAdd(this.form).then((res) => {
+            if (res.data.code == 200) {
+              //成功
+              successAlert(res.data.msg);
 
-          //数据重置
-          this.empty();
+              //数据重置
+              this.empty();
 
-          //弹框消失
-          this.cancel();
+              //弹框消失
+              this.cancel();
 
-          //list数据要刷新
-          this.reqRoleList();
+              //list数据要刷新
+              this.reqRoleList();
+            } else {
+              warningAlert(res.data.msg);
+            }
+          });
         } else {
-          warningAlert(res.data.msg);
+          console.log("error submit!!");
+          return false;
         }
       });
     },
@@ -125,33 +140,40 @@ export default {
         if (res.data.code == 200) {
           //这个时候form是没有id的
           this.form = res.data.list;
-          this.form.id=id
+          this.form.id = id;
           //给树形控件赋值
-          this.$refs.tree.setCheckedKeys(JSON.parse(this.form.menus))
+          this.$refs.tree.setCheckedKeys(JSON.parse(this.form.menus));
         } else {
           warningAlert(res.data.msg);
         }
       });
     },
     //修改
-    update() {
-      this.form.menus=JSON.stringify(this.$refs.tree.getCheckedKeys())
-      reqRoleUpdate(this.form).then((res) => {
-        if (res.data.code == 200) {
-          successAlert(res.data.msg);
-          this.empty();
-          this.cancel();
-          this.reqRoleList();
+    update(form) {
+      this.$refs[form].validate((valid) => {
+        if (valid) {
+          this.form.menus = JSON.stringify(this.$refs.tree.getCheckedKeys());
+          reqRoleUpdate(this.form).then((res) => {
+            if (res.data.code == 200) {
+              successAlert(res.data.msg);
+              this.empty();
+              this.cancel();
+              this.reqRoleList();
+            } else {
+              warningAlert(res.data.msg);
+            }
+          });
         } else {
-          warningAlert(res.data.msg);
+          console.log("error submit!!");
+          return false;
         }
       });
     },
   },
   mounted() {
     //如果菜单list没有请求过，就请求一下，如果请求过了，就不用请求了
-    if(this.menuList.length==0){
-      this.reqMenuListAction()
+    if (this.menuList.length == 0) {
+      this.reqMenuListAction();
     }
   },
 };

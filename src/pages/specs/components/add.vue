@@ -6,7 +6,13 @@
       @closed="close"
     >
       <el-form ref="form" :model="form" label-width="80px">
-        <el-form-item label="规格名称">
+        <el-form-item
+          label="规格名称"
+          prop="specsname"
+          :rules="[
+            { required: true, message: '请输入规格名称', trigger: 'blur' },
+          ]"
+        >
           <el-input v-model="form.specsname"></el-input>
         </el-form-item>
 
@@ -14,6 +20,10 @@
           label="规格属性"
           v-for="(item, index) in attrArr"
           :key="index"
+          prop="attr"
+          :rules="[
+            { required: true, message: '请输入规格属性', trigger: 'blur' },
+          ]"
         >
           <div class="con">
             <div class="input-wrap">
@@ -36,10 +46,10 @@
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button @click="cancel">取 消</el-button>
-        <el-button type="primary" @click="add" v-if="info.isAdd"
+        <el-button type="primary" @click="add('form')" v-if="info.isAdd"
           >添 加</el-button
         >
-        <el-button type="primary" @click="update" v-else>修 改</el-button>
+        <el-button type="primary" @click="update('form')" v-else>修 改</el-button>
       </div>
     </el-dialog>
   </div>
@@ -57,10 +67,10 @@ export default {
   components: {},
   data() {
     return {
-      attrArr:[{value:""},{value:""}],
+      attrArr: [{ value: "" }, { value: "" }],
       form: {
-        specsname:"",
-        attrs:"",
+        specsname: "",
+        attrs: "",
         status: 1,
       },
     };
@@ -76,12 +86,12 @@ export default {
     }),
     //
     //删除规格属性
-    del(index){
-      this.attrArr.splice(index,1);
+    del(index) {
+      this.attrArr.splice(index, 1);
     },
     //新增规格属性
     addAttr() {
-      this.attrArr.push({value:""});
+      this.attrArr.push({ value: "" });
     },
     //取消
     cancel() {
@@ -105,58 +115,72 @@ export default {
     },
 
     //点击了添加按钮
-    add() {
-
-      this.form.attrs=JSON.stringify(
-        this.attrArr.map((item)=>item.value));
-      reqSpecsAdd(this.form).then((res) => {
-        
-        if (res.data.code == 200) {
-          //成功
-          successAlert(res.data.msg);
-
-          //数据重置
-          this.empty();
-
-          //弹框消失
-          this.cancel();
-
-          //list数据要刷新
-          this.reqListAction();
-          //总数刷新
-          this.reqTotalAction();
+    add(form) {
+      this.$refs[form].validate((valid) => {
+        if (valid) {
+          this.form.attrs = JSON.stringify(
+            this.attrArr.map((item) => item.value)
+          );
+          reqSpecsAdd(this.form).then((res) => {
+            if (res.data.code == 200) {
+              //成功
+              successAlert(res.data.msg);
+              //数据重置
+              this.empty();
+              //弹框消失
+              this.cancel();
+              //list数据要刷新
+              this.reqListAction();
+              //总数刷新
+              this.reqTotalAction();
+              console.log(12);
+            } else {
+              warningAlert(res.data.msg);
+            }
+          });
         } else {
-          warningAlert(res.data.msg);
+          console.log("error submit!!");
+          return false;
         }
       });
     },
     //获取菜单详情 （1条）
     look(id) {
       //发请求
-      
+
       reqSpecsDetail(id).then((res) => {
-        
+        this.$refs.form.resetFields();
         if (res.data.code == 200) {
           //这个时候form是没有id的
           this.form = res.data.list[0];
-          this.attrArr=JSON.parse(this.form.attrs).map((item)=>({value:item}))
+          this.attrArr = JSON.parse(this.form.attrs).map((item) => ({
+            value: item,
+          }));
         } else {
           warningAlert(res.data.msg);
         }
       });
     },
     //修改
-    update() {
-      
-      this.form.attrs=JSON.stringify(this.attrArr.map((item)=>item.value));
-      reqSpecsUpdate(this.form).then((res) => {
-        if (res.data.code == 200) {
-          successAlert(res.data.msg);
-          this.empty();
-          this.cancel();
-          this.reqListAction();
+    update(form) {
+      this.$refs[form].validate((valid) => {
+        if (valid) {
+          this.form.attrs = JSON.stringify(
+            this.attrArr.map((item) => item.value)
+          );
+          reqSpecsUpdate(this.form).then((res) => {
+            if (res.data.code == 200) {
+              successAlert(res.data.msg);
+              this.empty();
+              this.cancel();
+              this.reqListAction();
+            } else {
+              warningAlert(res.data.msg);
+            }
+          });
         } else {
-          warningAlert(res.data.msg);
+          console.log("error submit!!");
+          return false;
         }
       });
     },
